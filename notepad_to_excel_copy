@@ -1,0 +1,160 @@
+# import necessary libraries
+import pandas as pd
+import os
+import glob
+from datetime import datetime
+import openpyxl 
+from openpyxl.styles import PatternFill
+from openpyxl.styles import Font
+from openpyxl.styles import Alignment
+
+# with open(filePath, 'a+') as c:
+#     print("Empty Excel file created\n")
+
+time = datetime.now()
+filePath = 'C:/Users/894226/Downloads/All studies counts_'+time.strftime("%d-%b-%Y.xlsx")
+
+
+def color():
+    wb = openpyxl.load_workbook('C:/Users/894226/Downloads/All studies counts_'+time.strftime("%d-%b-%Y")+'.xlsx')
+#     ws = wb['ACT16105']
+    
+    clinstoreStudiesPath = 'C:/Users/894226/OneDrive - Cognizant/Desktop/SaiKorsas/Clstr/'
+    clinstorecsv_files = glob.glob(os.path.join(clinstoreStudiesPath, "*.txt"))
+    for f in clinstorecsv_files:
+            sheetname = f.split("/")[-1].split("_")[-2]
+            ws = wb[sheetname]
+            fill_pattern = PatternFill(patternType='solid', fgColor='2f72b1')
+
+            for row in ws.iter_rows(min_row=1, max_row=1, min_col=1, max_col=8):
+              for cell in row:
+                cell.fill = fill_pattern
+            # ws['B4'].fill = fill_pattern
+                ws.row_dimensions[1].height = 30
+                ws.column_dimensions['A'].width = 25
+                ws.column_dimensions['B'].width = 25
+                ws.column_dimensions['C'].width = 30
+                ws.column_dimensions['D'].width = 1
+                ws.column_dimensions['E'].width = 20
+                ws.column_dimensions['F'].width = 20
+                ws.column_dimensions['G'].width = 20
+                ws.column_dimensions['H'].width = 20
+                ws.merge_cells('A1:A2')
+                ws.merge_cells('B1:C1')
+                ws.merge_cells('E1:F1')
+                center_align = Alignment(horizontal='center', vertical='center')
+
+                ws.cell(row = 1, column = 2).font = Font(size = 11, bold = True, color = 'F2F2F2')
+                ws.cell(row = 1, column = 5).font = Font(size = 11, bold = True, color = 'F2F2F2')
+                ws.cell(row = 1, column = 1).font = Font(size = 11, bold = True, color = 'F2F2F2')
+                ws.cell(row = 1, column = 8).font = Font(size = 11, bold = True, color = 'F2F2F2')
+                ws.cell(row = 1, column = 2).alignment = center_align
+                ws.cell(row = 1, column = 5).alignment = center_align
+                ws.cell(row = 1, column = 1).alignment = center_align
+                ws.cell(row = 1, column = 8).alignment = center_align
+
+                ws.cell(row = 1, column = 1).value = 'Domain Name'
+                ws.cell(row = 1, column = 2).value = 'Clinstore'
+                ws.cell(row = 1, column = 5).value = 'PDR'
+                ws.cell(row = 1, column = 8).value = 'Count Difference'
+               
+                ws['H3'] = '= ABS(C3-G3)'
+                #ws.cell(row = *, column = 9).value = '= SUM(A1:A5)'
+
+
+                # merge cell C6 and D6
+#                 ws.merge_cells('C6:D6')
+
+#                 ws.cell(row = 6, column = 6).value = 'Two merge cells.'
+
+    wb.save('C:/Users/894226/Downloads/All studies counts_'+time.strftime("%d-%b-%Y")+'.xlsx')
+
+    
+def clinstorecsv():
+    clinstoreStudiesPath = 'C:/Users/894226/OneDrive - Cognizant/Desktop/SaiKorsas/Clstr/'
+    clinstorelist = []
+    clinstorecsv_files = glob.glob(os.path.join(clinstoreStudiesPath, "*.txt"))
+
+    for f in clinstorecsv_files:
+        data = pd.read_csv(f)    
+        data.rename(columns = {data.columns[0]:'TEST'}, inplace = True)
+        A = data['TEST'].str.split()
+        df = pd.DataFrame([A][0])
+        B = [item for item in A]
+        df = pd.DataFrame(B, columns = ['Clinstore Domain Name', 'Clinstore Record Count','Clinstore Active Record Count'])
+        
+    #   df = df.astype({"Recordcount": int})
+    #   df = df.astype({"RActv": int})
+    #   df["RActv"] = pd.to_numeric(df["RActv"])
+    #   df.dtypes
+
+        clinstorelist.append(df)
+
+    #   display(list[0])
+    with pd.ExcelWriter('C:/Users/894226/Downloads/All studies counts_'+time.strftime("%d-%b-%Y")+'.xlsx') as writer:
+
+    # list[0].to_excel(writer, sheet_name=f.split("\\")[-1].split("_")[-2],startcol=7,startrow=6, index=False)
+
+        count=0
+        for f in clinstorecsv_files:
+            sheetname = f.split("/")[-1].split("_")[-2]
+            print(sheetname)
+            clinstorelist[count].to_excel(writer, sheet_name=sheetname, header= True,startrow=1, index=False)            
+#             for i in range(len(clinstorelist[count].columns)):
+#                 col_idx = df.columns.get_loc(clinstorelist[count].columns[i])
+#                 writer.sheets[sheetname].set_column(col_idx, col_idx, 25)
+            count = count+1 
+            print("\tData Copied for Clinstore Studies: ", sheetname)
+    print("\nSuccess...")
+#     writer.save()
+#     writer.close()
+    print("Final Excel Sheet generated location : ",filePath[:-35],"\n")
+
+
+
+    
+    
+    
+    
+    
+    
+def pdr():
+    pdrlist = []
+    pdrStudiesPath = 'C:/Users/894226/OneDrive - Cognizant/Desktop/SaiKorsas/Pdr/'
+    pdrcsv_files = glob.glob(os.path.join(pdrStudiesPath, "*.txt"))
+
+    for f1 in pdrcsv_files:
+        data1 = pd.read_csv(f1)    
+        data1.rename(columns = {data1.columns[0]:'TEST'}, inplace = True)
+        A = data1['TEST'].str.split()
+        df2 = pd.DataFrame([A][0])
+        B = [item for item in A]
+        df2 = pd.DataFrame(B, columns = ['PDR Domain Name', 'PDR Record Count','Active Record Count'])
+        pdrlist.append(df2)
+
+    #   display(list[0])
+    
+    with pd.ExcelWriter('C:/Users/894226/Downloads/All studies counts_'+time.strftime("%d-%b-%Y")+'.xlsx',engine="openpyxl",if_sheet_exists="overlay", mode="a",) as writer:
+
+    # list[0].to_excel(writer, sheet_name=f.split("\\")[-1].split("_")[-2],startcol=7,startrow=6, index=False)
+
+        count=0
+        for f in pdrcsv_files:
+            sheetname = f.split("/")[-1].split("_")[-3]
+          
+            pdrlist[count].to_excel(writer, sheet_name=sheetname,startrow=1 , header=True, startcol=4,index=False)
+#             for i in range(len(pdrlist[count].columns)):
+#                 col_idx = df2.columns.get_loc(pdrlist[count].columns[i])
+#                 writer.sheets[sheetname].set_column(col_idx, col_idx, 25)
+            count = count+1 
+            print("\tData Copied for Pdr Studies: ", sheetname)
+            # Get the xlsxwriter workbook and worksheet objects.
+    print("\nSuccess...")
+    print("Final Excel Sheet generated location : ",filePath[:-35])
+
+    
+clinstorecsv()
+pdr()
+
+color()
+
